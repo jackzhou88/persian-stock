@@ -1,0 +1,4 @@
+rootProject.name = 'persian-stock'
+include 'persian-data'
+include 'persian-richapp'
+
