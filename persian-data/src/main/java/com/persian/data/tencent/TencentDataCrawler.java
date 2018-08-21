@@ -10,10 +10,8 @@ import com.persian.data.util.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.time.Year;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -55,7 +53,7 @@ public class TencentDataCrawler extends DataCrawler {
                 });
     }
 
-    private <T> T querySingle(Class<T> pojoClass, String url) {
+    private <T> T querySingle(String url, Class<T> pojoClass) {
         String[] columnList = Stream.of(pojoClass.getDeclaredFields())
                 .map(x -> x.getName()).toArray(String[]::new);
         CsvSchema dataSchema = csvMapper.schemaFor(pojoClass)
@@ -109,16 +107,40 @@ public class TencentDataCrawler extends DataCrawler {
         if (type == null || !type.isCN()) {
             throw new IllegalArgumentException("Index type error: " + type);
         }
-        return querySingle(TencentStockRealtimeSimple.class,
-                String.format(TencentApi.QT_SERVICE, "s_" + type.getSymbol() + type.getCode()));
+        return querySingle(String.format(TencentApi.QT_SERVICE, "s_" + type.getSymbol() + type.getCode()),
+                TencentStockRealtimeSimple.class);
+    }
+
+    public EnumMap<IndexType, TencentStockRealtimeSimple> indexRealtimeSimpleCN() {
+        EnumMap<IndexType, TencentStockRealtimeSimple> results = new EnumMap<>(IndexType.class);
+        for (IndexType type : IndexType.values()) {
+            if (type.isCN()) {
+                TencentStockRealtimeSimple indexObj = querySingle(String.format(TencentApi.QT_SERVICE, "s_" + type.getSymbol() + type.getCode()),
+                        TencentStockRealtimeSimple.class);
+                results.put(type, indexObj);
+            }
+        }
+        return results;
     }
 
     public TencentStockRealtimeDetail indexRealtimeDetailCN(IndexType type) {
         if (type == null || !type.isCN()) {
             throw new IllegalArgumentException("Index type error: " + type);
         }
-        return querySingle(TencentStockRealtimeDetail.class,
-                String.format(TencentApi.QT_SERVICE, type.getSymbol() + type.getCode()));
+        return querySingle(String.format(TencentApi.QT_SERVICE, type.getSymbol() + type.getCode()),
+                TencentStockRealtimeDetail.class);
+    }
+
+    public EnumMap<IndexType, TencentStockRealtimeDetail> indexRealtimeDetailCN() {
+        EnumMap<IndexType, TencentStockRealtimeDetail> results = new EnumMap<>(IndexType.class);
+        for (IndexType type : IndexType.values()) {
+            if (type.isCN()) {
+                TencentStockRealtimeDetail indexObj = querySingle(String.format(TencentApi.QT_SERVICE, type.getSymbol() + type.getCode()),
+                        TencentStockRealtimeDetail.class);
+                results.put(type, indexObj);
+            }
+        }
+        return results;
     }
 
     private List<TencentStockKLine> queryKline(String codeSymbol, String url) {
@@ -153,14 +175,16 @@ public class TencentDataCrawler extends DataCrawler {
         return queryKline(codeSymbol, url);
     }
 
-    public List<TencentStockKLine> stockKLineDailyForYear(String codeSymbol, String year) {
+    public List<TencentStockKLine> stockKLineDailyForYear(String codeSymbol, Year year) {
         if (codeSymbol == null || codeSymbol.isEmpty()) {
             throw new IllegalArgumentException("Argument codeSymbol cannot be empty!");
         }
-        if (year == null || year.length() != 2 || Integer.valueOf(year) < 0) {
-            throw new IllegalArgumentException("Argument year error!");
+        if (year == null) {
+            year = Year.now();
         }
-        String url = String.format(TencentApi.KLINE_DAILY_YEAR, year, codeSymbol);
+        String yearStr = year.toString();
+        yearStr = yearStr.substring(yearStr.length() - 2);
+        String url = String.format(TencentApi.KLINE_DAILY_YEAR, yearStr, codeSymbol);
         return queryKline(codeSymbol, url);
     }
 

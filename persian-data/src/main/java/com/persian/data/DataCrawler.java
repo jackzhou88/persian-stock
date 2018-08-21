@@ -1,5 +1,6 @@
 package com.persian.data;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.persian.data.util.HttpClient;
@@ -9,6 +10,7 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -24,6 +26,7 @@ public abstract class DataCrawler {
     protected static final char DOUBLE_QUOTE = '"';
     protected static final String STOCK_CODE_FORMAT = "%06d";
     protected static final OkHttpClient httpClient = HttpClient.getOkHttpClient();
+    protected static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final CsvMapper csvMapper = new CsvMapper()
             .enable(CsvParser.Feature.TRIM_SPACES)
             .enable(CsvParser.Feature.IGNORE_TRAILING_UNMAPPABLE)
@@ -43,6 +46,20 @@ public abstract class DataCrawler {
             }
         } catch (Exception e) {
             logger.error("commonQuery error for url: " + url, e);
+        }
+        return null;
+    }
+
+    protected <T> T commonDownloadSync(String url, Function<InputStream, T> fileParser) {
+        try {
+            Request request = new Request.Builder().url(url).build();
+            Response response = httpClient.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                logger.error("commonDownload error for url: {}, statusCode: {}", url, response.code());
+            }
+            return fileParser.apply(response.body().byteStream());
+        } catch (Exception e) {
+            logger.error("commonDownload error for url: " + url, e);
         }
         return null;
     }

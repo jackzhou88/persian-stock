@@ -9,7 +9,7 @@ public enum IndexType {
     SZ_GEM("399006", "sz"),
     SH_50("000016", "sh"),
     HS_300("000300", "sh"),
-    ZH_500("000905", "sh");
+    ZZ_500("000905", "sh");
 
     private String code;
     private String symbol;
@@ -20,7 +20,7 @@ public enum IndexType {
     }
 
     public boolean isCN() {
-        return ordinal() <= ZH_500.ordinal();
+        return ordinal() <= ZZ_500.ordinal();
     }
 
     public String getCode() {

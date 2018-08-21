@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * @author: dave01.zhou  Time: 2018/7/29 18:32
  */
-public class SinaStockFinancialInfo implements Serializable, Cloneable {
+public class SinaStockBasicInfo implements Serializable, Cloneable {
     private String type;
     private String nameEn;
 
